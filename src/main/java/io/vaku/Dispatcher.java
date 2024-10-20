@@ -13,6 +13,7 @@ public class Dispatcher {
     private RequestProcessor defaultNotFoundProcessor;
     private RequestProcessor defaultInternalServerErrorProcessor;
     private RequestProcessor defaultBadRequestProcessor;
+    private RequestProcessor defaultMethodNotAllowedProcessor;
 
     private ItemsRepository itemsRepository;
 
@@ -26,11 +27,18 @@ public class Dispatcher {
         this.defaultNotFoundProcessor = new DefaultNotFoundProcessor();
         this.defaultInternalServerErrorProcessor = new DefaultInternalServerErrorProcessor();
         this.defaultBadRequestProcessor = new DefaultBadRequestProcessor();
+        this.defaultMethodNotAllowedProcessor = new DefaultMethodNotAllowedProcessor();
     }
 
     public void execute(HttpRequest request, OutputStream out) throws IOException {
         try {
             if (!processors.containsKey(request.getRoutingKey())) {
+                for (String key : processors.keySet()) {
+                    if (key.split(" ")[1].equals(request.getUri())) {
+                        defaultMethodNotAllowedProcessor.execute(request, out);
+                        return;
+                    }
+                }
                 defaultNotFoundProcessor.execute(request, out);
                 return;
             }
