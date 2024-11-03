@@ -1,10 +1,14 @@
 package io.vaku;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 public class HttpServer {
+    private static final Logger logger = LogManager.getLogger(HttpServer.class);
     private int port;
     private Dispatcher dispatcher;
 
@@ -15,7 +19,7 @@ public class HttpServer {
 
     public void start() {
         try (ServerSocket serverSocket = new ServerSocket(port)) {
-            System.out.println("Сервер запущен на порту: " + port);
+            logger.info("HTTP server started on port {}", port);
             while (true) {
                 try (Socket socket = serverSocket.accept()) {
                     byte[] buffer = new byte[8192];

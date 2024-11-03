@@ -1,13 +1,18 @@
 package io.vaku;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.util.HashMap;
 import java.util.Map;
 
 public class HttpRequest {
+    private static final Logger logger = LogManager.getLogger(HttpRequest.class);
     private String rawRequest;
     private HttpMethod method;
     private String uri;
     private Map<String, String> parameters;
+    private Map<String, String> headers;
     private String body;
     private Exception exception;
 
@@ -33,6 +38,7 @@ public class HttpRequest {
 
     public HttpRequest(String rawRequest) {
         this.rawRequest = rawRequest;
+        this.headers = new HashMap<>();
         this.parse();
     }
 
@@ -48,6 +54,7 @@ public class HttpRequest {
         int startIndex = rawRequest.indexOf(' ');
         int endIndex = rawRequest.indexOf(' ', startIndex + 1);
         uri = rawRequest.substring(startIndex + 1, endIndex);
+        parseHeaders(rawRequest);
         method = HttpMethod.valueOf(rawRequest.substring(0, startIndex));
         parameters = new HashMap<>();
         if (uri.contains("?")) {
@@ -64,13 +71,22 @@ public class HttpRequest {
         }
     }
 
+    private void parseHeaders(String rawRequest) {
+        String stringHeaders = rawRequest.substring(rawRequest.indexOf("\r\n") + 2, rawRequest.indexOf("\r\n\r\n"));
+        for (String line : stringHeaders.split("\r\n")) {
+            String[] header = line.split(": ");
+            headers.put(header[0], header[1]);
+        }
+    }
+
     public void info(boolean debug) {
         if (debug) {
-            System.out.println(rawRequest);
+            logger.info(rawRequest);
         }
-        System.out.println("Method: " + method);
-        System.out.println("URI: " + uri);
-        System.out.println("Parameters: " + parameters);
-        System.out.println("Body: "  + body);
+        logger.info("Method: {}", method);
+        logger.info("URI: {}", uri);
+        logger.info("Headers: {}", headers);
+        logger.info("Parameters: {}", parameters);
+        logger.info("Body: {}", body);
     }
 }
